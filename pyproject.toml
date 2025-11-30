@@ -13,3 +13,8 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
 ]
+
+[dependency-groups]
+dev = [
+    "black>=25.11.0",
+]

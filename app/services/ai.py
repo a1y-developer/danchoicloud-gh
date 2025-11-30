@@ -2,10 +2,11 @@ from google import genai
 from google.genai import types
 from app.core.config import settings
 
+
 class AIService:
     def __init__(self):
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model = 'gemini-3-pro-preview'
+        self.model = "gemini-3-pro-preview"
 
     async def generate_pr_summary(self, diff: str) -> str:
         system_instruction = """
@@ -42,13 +43,11 @@ class AIService:
         5. Keep file descriptions concise (under 15 words).
         6. Use backticks for file paths in the table.
         """
-        
+
         response = await self.client.aio.models.generate_content(
             model=self.model,
-            contents=f"Diff:\n{diff[:30000]}", # Truncate if too long
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction
-            )
+            contents=f"Diff:\n{diff[:30000]}",  # Truncate if too long
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
         return response.text
 
@@ -58,23 +57,23 @@ class AIService:
         Identify potential bugs, security issues, and performance improvements.
         Provide the review in markdown format.
         """
-        
+
         response = await self.client.aio.models.generate_content(
             model=self.model,
             contents=f"Review the following git diff:\n{diff[:30000]}",
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction
-            )
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
         return response.text
 
-    async def generate_inline_suggestions(self, code_snippet: str, context: str = "") -> str:
+    async def generate_inline_suggestions(
+        self, code_snippet: str, context: str = ""
+    ) -> str:
         system_instruction = """
         You are an expert developer.
         Provide a better implementation for the following code snippet.
         Only provide the code block with the suggestion, no explanations.
         """
-        
+
         user_content = f"""
         Context: {context}
         Code:
@@ -84,10 +83,9 @@ class AIService:
         response = await self.client.aio.models.generate_content(
             model=self.model,
             contents=user_content,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction
-            )
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
         return response.text
+
 
 ai_service = AIService()
