@@ -12,7 +12,6 @@ class GitHubService:
         return await asyncio.to_thread(self._get_client_sync, installation_id)
 
     def _get_client_sync(self, installation_id: int) -> Github:
-        # Handle potentially escaped newlines in the private key from env vars
         private_key = settings.GITHUB_PRIVATE_KEY.replace("\\n", "\n")
 
         auth = Auth.AppAuth(

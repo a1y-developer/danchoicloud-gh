@@ -12,6 +12,7 @@ dependencies = [
     "aiogram",
     "pydantic-settings",
     "python-dotenv",
+    "telegramify-markdown>=0.5.2",
 ]
 
 [dependency-groups]
