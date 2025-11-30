@@ -4,6 +4,7 @@ from app.bot import handlers
 
 logger = logging.getLogger(__name__)
 
+
 async def handle_event(event_name: str, payload_bytes: bytes):
     try:
         payload = json.loads(payload_bytes)
@@ -28,7 +29,7 @@ async def handle_event(event_name: str, payload_bytes: bytes):
             await handlers.handle_pr_assigned(payload)
         elif action == "closed":
             await handlers.handle_pr_closed(payload)
-    
+
     elif event_name == "issues":
         action = payload.get("action")
         if action == "opened":
@@ -43,7 +44,12 @@ async def handle_event(event_name: str, payload_bytes: bytes):
         if action == "created":
             await handlers.handle_issue_comment_created(payload)
 
-    elif event_name == "pull_request_review_comment":
+    elif event_name == "pull_request_review":
         action = payload.get("action")
-        if action == "created":
-            await handlers.handle_pr_review_comment_created(payload)
+        if action == "submitted":
+            await handlers.handle_pr_review_submitted(payload)
+
+    elif event_name == "workflow_run":
+        action = payload.get("action")
+        if action == "completed":
+            await handlers.handle_workflow_run(payload)

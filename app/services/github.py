@@ -49,4 +49,12 @@ class GitHubService:
         issue = repo_obj.get_issue(issue_number)
         issue.create_comment(body)
 
+    async def get_workflow_jobs(self, client: Github, owner: str, repo: str, run_id: int):
+        return await asyncio.to_thread(self._get_workflow_jobs_sync, client, owner, repo, run_id)
+
+    def _get_workflow_jobs_sync(self, client: Github, owner: str, repo: str, run_id: int):
+        repo_obj = client.get_repo(f"{owner}/{repo}")
+        run = repo_obj.get_workflow_run(run_id)
+        return list(run.jobs())
+
 github_service = GitHubService()
