@@ -1,7 +1,7 @@
 import logging
 from app.services.github import github_service
 from app.services.ai import ai_service
-from app.services.telegram import telegram_service
+from app.services.notifications.manager import notification_manager
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -15,19 +15,23 @@ async def handle_pr_opened_notification(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
 
-    # Notifications (To Group Chat)
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): ✨ New PR Opened: [{pr.get('title')}]({pr.get('html_url')}) by @{sender.get('login')}",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : ✨ New PR Opened: "
+        f"[{pr.get('title')}]({pr.get('html_url')}) by @{sender.get('login')}"
+    )
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_pr_opened_ai(payload: dict):
     installation_id = payload.get("installation", {}).get("id")
     repo = payload.get("repository", {})
     pr = payload.get("pull_request", {})
+    sender = payload.get("sender", {})
+
+    if sender.get("type") == "Bot":
+        logger.info("PR opened by a bot, skipping AI processing")
+        return
 
     owner_name = repo.get("owner", {}).get("login")
     repo_name = repo.get("name")
@@ -49,6 +53,8 @@ async def handle_pr_opened_ai(payload: dict):
 
         # Generate Summary
         summary = await ai_service.generate_pr_summary(diff)
+
+        # Note: GitHub comments use standard Markdown, not Telegram's MarkdownV2
         await github_service.post_comment(
             client, owner_name, repo_name, pr_number, f"## PR Summary\n\n{summary}"
         )
@@ -68,12 +74,12 @@ async def handle_pr_review_requested(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): 🔍 Review Requested for @{requested_reviewer.get('login')} : [{pr.get('title')}]({pr.get('html_url')})",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 🔍 Review Requested for "
+        f"@{requested_reviewer.get('login')} : [{pr.get('title')}]({pr.get('html_url')})"
+    )
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_pr_assigned(payload: dict):
@@ -83,12 +89,12 @@ async def handle_pr_assigned(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): 👤 @{assignee.get('login')} assigned to PR: [{pr.get('title')}]({pr.get('html_url')})",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 👤 @{assignee.get('login')} "
+        f"assigned to PR: [{pr.get('title')}]({pr.get('html_url')})"
+    )
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_issue_opened(payload: dict):
@@ -98,12 +104,12 @@ async def handle_issue_opened(payload: dict):
     repo_url = repo.get("html_url")
     sender = payload.get("sender", {})
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): 🚨 New Issue: [{issue.get('title')}]({issue.get('html_url')}) by @{sender.get('login')}",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 🚨 New Issue: "
+        f"[{issue.get('title')}]({issue.get('html_url')}) by @{sender.get('login')}"
+    )
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_issue_assigned(payload: dict):
@@ -113,12 +119,12 @@ async def handle_issue_assigned(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): 🔨 @{assignee.get('login')} assigned to Issue: [{issue.get('title')}]({issue.get('html_url')})",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 🔨 @{assignee.get('login')} "
+        f"assigned to Issue: [{issue.get('title')}]({issue.get('html_url')})"
+    )
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_issue_comment_created(payload: dict):
@@ -139,17 +145,15 @@ async def handle_issue_comment_created(payload: dict):
         f"@{a.get('login')}" for a in assignees if a.get("login") != sender.get("login")
     ]
 
-    message = f"[`{repo_full_name}`]({repo_url}): 💬 New Comment on {entity_type}: [{issue.get('title')}]({comment.get('html_url')}) by @{sender.get('login')}"
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 💬 New Comment on {entity_type}: "
+        f"[{issue.get('title')}]({comment.get('html_url')}) by @{sender.get('login')}"
+    )
 
     if assignee_mentions:
-        message += f"\n\nCC: {', '.join(assignee_mentions)} please check!"
+        markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            message,
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_pr_closed(payload: dict):
@@ -175,17 +179,15 @@ async def handle_pr_closed(payload: dict):
         f"@{a.get('login')}" for a in assignees if a.get("login") != user
     ]
 
-    message = f"[`{repo_full_name}`]({repo_url}): {icon} PR {action_text}: [{pr.get('title')}]({pr.get('html_url')}) by @{user}"
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : {icon} PR {action_text}: "
+        f"[{pr.get('title')}]({pr.get('html_url')}) by @{user}"
+    )
 
     if assignee_mentions:
-        message += f"\n\nCC: {', '.join(assignee_mentions)}"
+        markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            message,
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_issue_closed(payload: dict):
@@ -195,12 +197,20 @@ async def handle_issue_closed(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            f"[`{repo_full_name}`]({repo_url}): ✅ Issue Closed: [{issue.get('title')}]({issue.get('html_url')}) by @{sender.get('login')}",
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    assignees = issue.get("assignees", [])
+    assignee_mentions = [
+        f"@{a.get('login')}" for a in assignees if a.get("login") != sender.get("login")
+    ]
+
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : ✅ Issue Closed: "
+        f"[{issue.get('title')}]({issue.get('html_url')}) by @{sender.get('login')}"
+    )
+
+    if assignee_mentions:
+        markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
+
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_pr_review_submitted(payload: dict):
@@ -234,20 +244,18 @@ async def handle_pr_review_submitted(payload: dict):
     # Review body (optional)
     body = review.get("body")
 
-    message = f"[`{repo_full_name}`]({repo_url}): {icon} PR {action_text}: [{pr.get('title')}]({review.get('html_url')}) by @{sender.get('login')}"
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : {icon} PR {action_text}: "
+        f"[{pr.get('title')}]({review.get('html_url')}) by @{sender.get('login')}"
+    )
 
     if body:
-        message += f'\n\n"{body}"'
+        markdown_text += f'\n\n"{body}"'
 
     if assignee_mentions:
-        message += f"\n\nCC: {', '.join(assignee_mentions)} please check!"
+        markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    if settings.TELEGRAM_CHAT_ID:
-        await telegram_service.send_message(
-            settings.TELEGRAM_CHAT_ID,
-            message,
-            message_thread_id=settings.TELEGRAM_THREAD_ID,
-        )
+    await notification_manager.broadcast_message(markdown_text)
 
 
 async def handle_workflow_run(payload: dict):
@@ -265,6 +273,8 @@ async def handle_workflow_run(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
     run_id = workflow_run.get("id")
+    actor = workflow_run.get("actor", {})
+    actor_login = actor.get("login", "Unknown")
     owner_name = repo.get("owner", {}).get("login")
     repo_name = repo.get("name")
 
@@ -278,9 +288,12 @@ async def handle_workflow_run(payload: dict):
             client, owner_name, repo_name, run_id
         )
 
-        message = f"[`{repo_full_name}`]({repo_url}): ❌ Workflow Failed: [{workflow_name}]({workflow_url})\n\n"
+        markdown_text = (
+            f"**[{repo_full_name}]({repo_url})** : ❌ Workflow Failed: "
+            f"[{workflow_name}]({workflow_url})\n\n"
+        )
 
-        message += "*Jobs:*\n"
+        markdown_text += "**Jobs:**\n"
 
         for job in jobs:
             job_name = job.name
@@ -311,13 +324,13 @@ async def handle_workflow_run(payload: dict):
                 else "❌" if job_status == "failure" else "⚠️"
             )
 
-            message += f"{icon} [{job_name}]({job_url}) - {job_status} ({duration})\n"
-
-        if settings.TELEGRAM_CHAT_ID:
-            await telegram_service.send_message(
-                settings.TELEGRAM_CHAT_ID,
-                message,
-                message_thread_id=settings.TELEGRAM_THREAD_ID,
+            markdown_text += (
+                f"{icon} [{job_name}]({job_url}) - {job_status} ({duration})\n"
             )
+
+            if actor_login != "Unknown":
+                markdown_text += f"cc: {actor_login} please check this job!\n"
+
+        await notification_manager.broadcast_message(markdown_text)
     except Exception as e:
         logger.error(f"Error handling workflow run: {e}", exc_info=True)
