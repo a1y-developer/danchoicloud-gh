@@ -1,3 +1,5 @@
+import json
+from typing import List
 from google import genai
 from google.genai import types
 from app.core.config import settings
@@ -86,6 +88,42 @@ class AIService:
             config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
         return response.text
+
+    async def suggest_labels(
+        self, title: str, body: str, available_labels: List[str]
+    ) -> List[str]:
+        labels_list_str = "\n".join([f"- {label}" for label in available_labels])
+
+        system_instruction = f"""
+        You are an expert GitHub repository maintainer.
+        Analyze the following issue or pull request title and body.
+        Suggest appropriate labels from the following list of available labels:
+        {labels_list_str}
+        
+        Return ONLY a JSON array of strings, e.g., ["bug", "documentation"].
+        If no labels are appropriate, return an empty array [].
+        Just add labels if you are sure about it.
+        Do not include any markdown formatting (like ```json ... ```) or extra text.
+        """
+
+        user_content = f"""
+        Title: {title}
+        Body: {body}
+        """
+
+        try:
+            response = await self.client.aio.models.generate_content(
+                model=self.model,
+                contents=user_content,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    response_mime_type="application/json",
+                ),
+            )
+            return json.loads(response.text)
+        except Exception as e:
+            print(f"Error suggesting labels: {e}")
+            return []
 
 
 ai_service = AIService()

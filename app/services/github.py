@@ -77,5 +77,38 @@ class GitHubService:
         run = repo_obj.get_workflow_run(run_id)
         return list(run.jobs())
 
+    async def add_labels(
+        self,
+        client: Github,
+        owner: str,
+        repo: str,
+        issue_number: int,
+        labels: List[str],
+    ):
+        await asyncio.to_thread(
+            self._add_labels_sync, client, owner, repo, issue_number, labels
+        )
+
+    def _add_labels_sync(
+        self,
+        client: Github,
+        owner: str,
+        repo: str,
+        issue_number: int,
+        labels: List[str],
+    ):
+        if not labels:
+            return
+        repo_obj = client.get_repo(f"{owner}/{repo}")
+        issue = repo_obj.get_issue(issue_number)
+        issue.add_to_labels(*labels)
+
+    async def get_repo_labels(self, client: Github, owner: str, repo: str) -> List[str]:
+        return await asyncio.to_thread(self._get_repo_labels_sync, client, owner, repo)
+
+    def _get_repo_labels_sync(self, client: Github, owner: str, repo: str) -> List[str]:
+        repo_obj = client.get_repo(f"{owner}/{repo}")
+        return [label.name for label in repo_obj.get_labels()]
+
 
 github_service = GitHubService()
