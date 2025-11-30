@@ -1,7 +1,5 @@
-# Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS uv
 
-# Install the project into `/app`
 WORKDIR /app
 
 # Enable bytecode compilation
