@@ -52,6 +52,7 @@ class TelegramProvider(NotificationProvider):
                 chat_id=self.chat_id,
                 text=converted_message,
                 message_thread_id=self.thread_id,
+                disable_web_page_preview=True,
             )
         except Exception as e:
             logger.error(f"Failed to send Telegram message: {e}", exc_info=True)

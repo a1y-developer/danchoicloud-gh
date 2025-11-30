@@ -23,6 +23,48 @@ async def handle_pr_opened_notification(payload: dict):
     await notification_manager.broadcast_message(markdown_text)
 
 
+async def handle_pr_opened_label_ai(payload: dict):
+    installation_id = payload.get("installation", {}).get("id")
+    repo = payload.get("repository", {})
+    pr = payload.get("pull_request", {})
+    sender = payload.get("sender", {})
+
+    if sender.get("type") == "Bot":
+        logger.info("PR opened by a bot, skipping AI labeling")
+        return
+
+    owner_name = repo.get("owner", {}).get("login")
+    repo_name = repo.get("name")
+    pr_number = pr.get("number")
+    title = pr.get("title", "")
+    body = pr.get("body", "") or ""
+
+    logger.info(
+        f"Processing AI labeling for PR #{pr_number} in {owner_name}/{repo_name}"
+    )
+
+    if not installation_id:
+        logger.error("No installation ID found")
+        return
+
+    client = await github_service.get_client(installation_id)
+
+    try:
+        available_labels = await github_service.get_repo_labels(
+            client, owner_name, repo_name
+        )
+        suggested_labels = await ai_service.suggest_labels(
+            title, body, available_labels
+        )
+        if suggested_labels:
+            await github_service.add_labels(
+                client, owner_name, repo_name, pr_number, suggested_labels
+            )
+            logger.info(f"Added labels to PR #{pr_number}: {suggested_labels}")
+    except Exception as e:
+        logger.error(f"Error suggesting labels: {e}")
+
+
 async def handle_pr_opened_ai(payload: dict):
     installation_id = payload.get("installation", {}).get("id")
     repo = payload.get("repository", {})
@@ -110,6 +152,45 @@ async def handle_issue_opened(payload: dict):
     )
 
     await notification_manager.broadcast_message(markdown_text)
+
+
+async def handle_issue_opened_ai(payload: dict):
+    installation_id = payload.get("installation", {}).get("id")
+    repo = payload.get("repository", {})
+    issue = payload.get("issue", {})
+    sender = payload.get("sender", {})
+
+    if sender.get("type") == "Bot":
+        return
+
+    owner_name = repo.get("owner", {}).get("login")
+    repo_name = repo.get("name")
+    issue_number = issue.get("number")
+    title = issue.get("title", "")
+    body = issue.get("body", "") or ""
+
+    logger.info(f"Processing AI for Issue #{issue_number} in {owner_name}/{repo_name}")
+
+    if not installation_id:
+        logger.error("No installation ID found")
+        return
+
+    client = await github_service.get_client(installation_id)
+
+    try:
+        available_labels = await github_service.get_repo_labels(
+            client, owner_name, repo_name
+        )
+        suggested_labels = await ai_service.suggest_labels(
+            title, body, available_labels
+        )
+        if suggested_labels:
+            await github_service.add_labels(
+                client, owner_name, repo_name, issue_number, suggested_labels
+            )
+            logger.info(f"Added labels to Issue #{issue_number}: {suggested_labels}")
+    except Exception as e:
+        logger.error(f"Error in AI processing for Issue: {e}", exc_info=True)
 
 
 async def handle_issue_assigned(payload: dict):

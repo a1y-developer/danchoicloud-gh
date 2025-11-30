@@ -23,6 +23,7 @@ async def handle_event(event_name: str, payload_bytes: bytes):
         if action == "opened":
             await handlers.handle_pr_opened_notification(payload)
             await handlers.handle_pr_opened_ai(payload)
+            await handlers.handle_pr_opened_label_ai(payload)
         elif action == "review_requested":
             await handlers.handle_pr_review_requested(payload)
         elif action == "assigned":
@@ -34,6 +35,7 @@ async def handle_event(event_name: str, payload_bytes: bytes):
         action = payload.get("action")
         if action == "opened":
             await handlers.handle_issue_opened(payload)
+            await handlers.handle_issue_opened_ai(payload)
         elif action == "assigned":
             await handlers.handle_issue_assigned(payload)
         elif action == "closed":
