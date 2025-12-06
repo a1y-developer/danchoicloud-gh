@@ -10,6 +10,17 @@ class Settings(BaseSettings):
     GITHUB_PRIVATE_KEY: str
     GITHUB_WEBHOOK_SECRET: str
 
+    # CLA Assistant
+    CLA_ENABLED: bool = True
+    CLA_DOCUMENT_URL: str | None = None
+    CLA_SIGNATURES_REPO: str | None = None  # e.g. "a1y-developer/cla.db"
+    CLA_SIGNATURES_PATH: str = "signatures/version1/cla.json"
+    CLA_SIGNATURES_BRANCH: str = "main"
+    CLA_ALLOWLIST: str = "bot"  # comma-separated usernames/bots
+    CLA_SIGN_PHRASE: str = "I have read the CLA Document and I hereby sign the CLA"
+    CLA_RECHECK_PHRASE: str = "recheck"
+    CLA_LOCK_AFTER_MERGE: bool = True
+
     # Google Gemini
     GEMINI_API_KEY: str
 
