@@ -1,6 +1,8 @@
 import logging
-from app.services.github import github_service
+
 from app.services.ai import ai_service
+from app.services.cla import cla_service
+from app.services.github import github_service
 from app.services.notifications.manager import notification_manager
 from app.core.config import settings
 
@@ -107,6 +109,20 @@ async def handle_pr_opened_ai(payload: dict):
 
     except Exception as e:
         logger.error(f"Error in AI processing: {e}", exc_info=True)
+
+
+async def handle_pr_cla_check(payload: dict):
+    """Run CLA check for PR on open/synchronize or manual triggers."""
+    installation_id = payload.get("installation", {}).get("id")
+    if not installation_id:
+        logger.error("No installation ID found for CLA check")
+        return
+
+    client = await github_service.get_client(installation_id)
+    try:
+        await cla_service.check_pr_cla(client, payload)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error("Error while running CLA check: %s", exc, exc_info=True)
 
 
 async def handle_pr_review_requested(payload: dict):
@@ -237,6 +253,22 @@ async def handle_issue_comment_created(payload: dict):
     await notification_manager.broadcast_message(markdown_text)
 
 
+async def handle_issue_comment_cla(payload: dict):
+    """Handle CLA-related commands in issue/PR comments."""
+    installation_id = payload.get("installation", {}).get("id")
+    if not installation_id:
+        logger.error("No installation ID found for CLA comment handler")
+        return
+
+    client = await github_service.get_client(installation_id)
+    try:
+        await cla_service.handle_sign_comment(client, payload)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error(
+            "Error while handling CLA sign/recheck comment: %s", exc, exc_info=True
+        )
+
+
 async def handle_pr_closed(payload: dict):
     pr = payload.get("pull_request", {})
     sender = payload.get("sender", {})
@@ -292,6 +324,20 @@ async def handle_issue_closed(payload: dict):
         markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
     await notification_manager.broadcast_message(markdown_text)
+
+
+async def handle_pr_closed_cla(payload: dict):
+    """Lock PR after merge if CLA is satisfied and locking is enabled."""
+    installation_id = payload.get("installation", {}).get("id")
+    if not installation_id:
+        logger.error("No installation ID found for CLA merge handler")
+        return
+
+    client = await github_service.get_client(installation_id)
+    try:
+        await cla_service.handle_pr_merged(client, payload)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.error("Error while handling CLA post-merge hook: %s", exc, exc_info=True)
 
 
 async def handle_pr_review_submitted(payload: dict):
@@ -410,7 +456,7 @@ async def handle_workflow_run(payload: dict):
             )
 
             if actor_login != "Unknown":
-                markdown_text += f"cc: {actor_login} please check this job!\n"
+                markdown_text += f"cc: @{actor_login} please check this job!\n"
 
         await notification_manager.broadcast_message(markdown_text)
     except Exception as e:

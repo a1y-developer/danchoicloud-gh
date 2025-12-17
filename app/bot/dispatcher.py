@@ -24,12 +24,16 @@ async def handle_event(event_name: str, payload_bytes: bytes):
             await handlers.handle_pr_opened_notification(payload)
             await handlers.handle_pr_opened_ai(payload)
             await handlers.handle_pr_opened_label_ai(payload)
+            await handlers.handle_pr_cla_check(payload)
+        elif action == "synchronize":
+            await handlers.handle_pr_cla_check(payload)
         elif action == "review_requested":
             await handlers.handle_pr_review_requested(payload)
         elif action == "assigned":
             await handlers.handle_pr_assigned(payload)
         elif action == "closed":
             await handlers.handle_pr_closed(payload)
+            await handlers.handle_pr_closed_cla(payload)
 
     elif event_name == "issues":
         action = payload.get("action")
@@ -45,6 +49,7 @@ async def handle_event(event_name: str, payload_bytes: bytes):
         action = payload.get("action")
         if action == "created":
             await handlers.handle_issue_comment_created(payload)
+            await handlers.handle_issue_comment_cla(payload)
 
     elif event_name == "pull_request_review":
         action = payload.get("action")
