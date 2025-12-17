@@ -361,15 +361,6 @@ class CLAService:
                 if isinstance(item, str):
                     signed.add(item)
                 elif isinstance(item, dict):
-                    # Example schema:
-                    # {
-                    #   "name": "zong-zhe",
-                    #   "id": 68977949,
-                    #   "comment_id": 1140846027,
-                    #   "created_at": "2022-05-30T08:15:44Z",
-                    #   "repoId": 493634005,
-                    #   "pullRequestNo": 4
-                    # }
                     user = (
                         item.get("name")
                         or item.get("user")
@@ -401,22 +392,6 @@ class CLAService:
     ) -> Dict:
         if not isinstance(data, dict):
             data = {}
-
-        # Prefer writing in the classic CLA Assistant format so that
-        # existing tooling can read the file:
-        #
-        # {
-        #   "signedContributors": [
-        #     {
-        #       "name": "user",
-        #       "id": 123,
-        #       "comment_id": 456,
-        #       "created_at": "2022-01-01T00:00:00Z",
-        #       "repoId": 789,
-        #       "pullRequestNo": 1
-        #     }
-        #   ]
-        # }
 
         entries = data.get("signedContributors")
         if not isinstance(entries, list):
@@ -475,8 +450,6 @@ class CLAService:
             existing_status_comment = None
 
         if unsigned:
-            # There are still users who haven't signed – ensure there is a
-            # status comment that lists them.
             users_str = ", ".join(f"@{u}" for u in unsigned)
             core_body = (
                 "Thank you for your contribution! Before we can merge this pull "

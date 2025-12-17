@@ -35,9 +35,6 @@ class GitHubService:
     def _get_repo_sync(self, client: Github, full_name: str):
         return client.get_repo(full_name)
 
-    # ------------------------------------------------------------------
-    # PR helpers
-    # ------------------------------------------------------------------
     async def get_pr_diff(
         self, client: Github, owner: str, repo: str, pull_number: int
     ) -> str:
@@ -52,8 +49,6 @@ class GitHubService:
         pr = repo_obj.get_pull(pull_number)
         # Request the diff specifically
         headers = {"Accept": "application/vnd.github.v3.diff"}
-        # Access internal requester to send custom headers with the existing auth
-        # This avoids needing to manually handle tokens for a raw request
         status, headers, data = client._Github__requester.requestBlob(
             "GET", pr.url, headers=headers
         )
@@ -162,7 +157,6 @@ class GitHubService:
         path: str,
         branch: str,
     ) -> Tuple[Optional[str], Optional[str]]:
-        """Return (content, sha) for a file or (None, None) if it does not exist."""
         return await asyncio.to_thread(
             self._get_file_content_sync,
             client,
@@ -178,14 +172,9 @@ class GitHubService:
         path: str,
         branch: str,
     ) -> Tuple[Optional[str], Optional[str]]:
-        # NOTE:
-        # For GitHub Apps, a 404 here can also mean "no access to this repo",
-        # not just "repo does not exist".
         try:
             repo = client.get_repo(repo_full_name)
-        except GithubException as exc:  # type: ignore[no-untyped-call]
-            # Treat "repo not found / not accessible" the same way as
-            # "file not found" for callers that just want a yes/no answer.
+        except GithubException as exc:
             if exc.status == 404:
                 logger.warning(
                     "GitHub repo not accessible: %s (404). Data: %s",
@@ -194,7 +183,6 @@ class GitHubService:
                 )
                 return None, None
 
-            # For anything else (401, 403, 500, ...), bubble up with context.
             logger.error(
                 "Error loading GitHub repo %s: %s (status=%s, data=%s)",
                 repo_full_name,
@@ -206,14 +194,14 @@ class GitHubService:
 
         try:
             file = repo.get_contents(path, ref=branch)
-        except GithubException as exc:  # type: ignore[no-untyped-call]
+        except GithubException as exc:
             if exc.status == 404:
                 return None, None
             raise
 
         try:
             content = file.decoded_content.decode("utf-8")
-        except Exception:  # pragma: no cover - very unlikely
+        except Exception:
             content = file.decoded_content
 
         return content, file.sha
@@ -256,7 +244,7 @@ class GitHubService:
                 existing.sha,
                 branch=branch,
             )
-        except GithubException as exc:  # type: ignore[no-untyped-call]
+        except GithubException as exc:
             if exc.status != 404:
                 raise
             repo.create_file(
