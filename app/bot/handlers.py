@@ -461,3 +461,32 @@ async def handle_workflow_run(payload: dict):
         await notification_manager.broadcast_message(markdown_text)
     except Exception as e:
         logger.error(f"Error handling workflow run: {e}", exc_info=True)
+
+
+async def handle_release_published(payload: dict):
+    """
+    Send a notification when a new release is published.
+    """
+    release = payload.get("release", {})
+    repo = payload.get("repository", {})
+    sender = payload.get("sender", {})
+
+    repo_full_name = repo.get("full_name")
+    repo_url = repo.get("html_url")
+
+    release_name = release.get("name") or release.get("tag_name")
+    release_url = release.get("html_url")
+    tag_name = release.get("tag_name")
+
+    markdown_text = (
+        f"**[{repo_full_name}]({repo_url})** : 🎉 New Release Published: "
+        f"[{release_name}]({release_url})"
+    )
+
+    if tag_name:
+        markdown_text += f" (`{tag_name}`)"
+
+    if sender.get("login"):
+        markdown_text += f" by @{sender.get('login')}"
+
+    await notification_manager.broadcast_message(markdown_text)

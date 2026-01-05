@@ -60,3 +60,8 @@ async def handle_event(event_name: str, payload_bytes: bytes):
         action = payload.get("action")
         if action == "completed":
             await handlers.handle_workflow_run(payload)
+
+    elif event_name == "release":
+        action = payload.get("action")
+        if action in {"published", "released"}:
+            await handlers.handle_release_published(payload)
