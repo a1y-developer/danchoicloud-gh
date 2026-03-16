@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: danchoicloud-gh
-  description: @danchoicloud Github App
+  description: danchoicloud Github App
   annotations:
     github.com/project-slug: 'a1y-developer/danchoicloud-gh'
 spec:
