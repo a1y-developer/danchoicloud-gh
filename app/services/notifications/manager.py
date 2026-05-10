@@ -43,7 +43,9 @@ class NotificationManager:
                     "TELEGRAM_BOT_TOKEN is set but no TELEGRAM_CHANNELS/TELEGRAM_CHAT_ID configured"
                 )
 
-    def _parse_telegram_channels(self, channels: str | None) -> list[tuple[int, int | None]]:
+    def _parse_telegram_channels(
+        self, raw_channels: str | None
+    ) -> list[tuple[int, int | None]]:
         """
         Parse TELEGRAM_CHANNELS values formatted as:
         "<chat_id>" or "<chat_id>:<thread_id>" entries separated by commas.
@@ -51,11 +53,11 @@ class NotificationManager:
         Returns:
             A list of (chat_id, thread_id) tuples where thread_id may be None.
         """
-        if not channels:
+        if not raw_channels:
             return []
 
         channels_list: list[tuple[int, int | None]] = []
-        for raw_entry in channels.split(","):
+        for raw_entry in raw_channels.split(","):
             entry = raw_entry.strip()
             if not entry:
                 continue

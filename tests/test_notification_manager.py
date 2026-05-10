@@ -99,7 +99,7 @@ class NotificationManagerTest(unittest.TestCase):
             "GITHUB_WEBHOOK_SECRET": "secret",
             "GEMINI_API_KEY": "gemini",
             "TELEGRAM_BOT_TOKEN": "token",
-            "TELEGRAM_CHANNELS": "-1001:12,-1002,invalid,-1003:",
+            "TELEGRAM_CHANNELS": "-1001:12,-1002,invalid,-1003:,-1004:0",
         }
         with patch.dict(os.environ, env, clear=False), patch.dict(
             sys.modules, _install_telegram_stubs()
@@ -112,7 +112,7 @@ class NotificationManagerTest(unittest.TestCase):
 
         self.assertEqual(
             [(p.chat_id, p.thread_id) for p in manager.providers],
-            [(-1001, 12), (-1002, None), (-1003, None)],
+            [(-1001, 12), (-1002, None), (-1003, None), (-1004, 0)],
         )
         self.assertTrue(
             any(
