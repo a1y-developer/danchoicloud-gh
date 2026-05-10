@@ -47,6 +47,9 @@ class NotificationManager:
         """
         Parse TELEGRAM_CHANNELS values formatted as:
         "<chat_id>" or "<chat_id>:<thread_id>" entries separated by commas.
+
+        Returns:
+            A list of (chat_id, thread_id) tuples where thread_id may be None.
         """
         if not channels:
             return []
