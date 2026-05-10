@@ -58,9 +58,17 @@ class NotificationManager:
                 continue
 
             chat_id_part, _, thread_id_part = entry.partition(":")
+            chat_id_text = chat_id_part.strip()
+            thread_id_text = thread_id_part.strip()
+            if not chat_id_text:
+                logger.warning(
+                    "Invalid TELEGRAM_CHANNELS entry '%s'; missing chat_id", entry
+                )
+                continue
+
             try:
-                chat_id = int(chat_id_part.strip())
-                thread_id = int(thread_id_part.strip()) if thread_id_part.strip() else None
+                chat_id = int(chat_id_text)
+                thread_id = int(thread_id_text) if thread_id_text else None
             except ValueError:
                 logger.warning(
                     "Invalid TELEGRAM_CHANNELS entry '%s'; expected chat_id[:thread_id]",

@@ -105,11 +105,20 @@ class NotificationManagerTest(unittest.TestCase):
             sys.modules, _install_telegram_stubs()
         ):
             NotificationManager = self._reload_notification_manager()
-            manager = NotificationManager()
+            with self.assertLogs(
+                "app.services.notifications.manager", level="WARNING"
+            ) as captured_logs:
+                manager = NotificationManager()
 
         self.assertEqual(
             [(p.chat_id, p.thread_id) for p in manager.providers],
             [(-1001, 12), (-1002, None), (-1003, None)],
+        )
+        self.assertTrue(
+            any(
+                "Invalid TELEGRAM_CHANNELS entry 'invalid'" in message
+                for message in captured_logs.output
+            )
         )
 
     def test_uses_legacy_single_channel_when_multi_channel_not_set(self):
