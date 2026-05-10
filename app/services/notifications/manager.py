@@ -51,7 +51,7 @@ class NotificationManager:
         if not channels:
             return []
 
-        parsed_channels: list[tuple[int, int | None]] = []
+        channels_list: list[tuple[int, int | None]] = []
         for raw_entry in channels.split(","):
             entry = raw_entry.strip()
             if not entry:
@@ -76,9 +76,9 @@ class NotificationManager:
                 )
                 continue
 
-            parsed_channels.append((chat_id, thread_id))
+            channels_list.append((chat_id, thread_id))
 
-        return parsed_channels
+        return channels_list
 
     def register_provider(self, provider: NotificationProvider):
         """

@@ -15,8 +15,8 @@ def _install_telegram_stubs():
 
     class BaseSettings:
         def __init__(self):
-            annotations = getattr(self.__class__, "__annotations__", {})
-            for name, annotation in annotations.items():
+            class_annotations = getattr(self.__class__, "__annotations__", {})
+            for name, annotation in class_annotations.items():
                 env_value = os.environ.get(name)
                 if env_value is None:
                     if hasattr(self.__class__, name):
