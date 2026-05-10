@@ -15,9 +15,9 @@ class TelegramProvider(NotificationProvider):
     Handles conversion from standard Markdown to Telegram MarkdownV2.
     """
 
-    def __init__(self):
-        self.chat_id = settings.TELEGRAM_CHAT_ID
-        self.thread_id = settings.TELEGRAM_THREAD_ID
+    def __init__(self, chat_id: int | None = None, thread_id: int | None = None):
+        self.chat_id = settings.TELEGRAM_CHAT_ID if chat_id is None else chat_id
+        self.thread_id = settings.TELEGRAM_THREAD_ID if thread_id is None else thread_id
         self.bot = None
 
         if settings.TELEGRAM_BOT_TOKEN:

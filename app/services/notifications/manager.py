@@ -22,9 +22,55 @@ class NotificationManager:
         Registers providers based on configuration.
         """
         # Telegram
-        if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
-            self.register_provider(TelegramProvider())
-            logger.info("Telegram provider registered")
+        if settings.TELEGRAM_BOT_TOKEN:
+            channels = self._parse_telegram_channels(settings.TELEGRAM_CHANNELS)
+            if channels:
+                for chat_id, thread_id in channels:
+                    self.register_provider(
+                        TelegramProvider(chat_id=chat_id, thread_id=thread_id)
+                    )
+                logger.info("Registered %d Telegram channel provider(s)", len(channels))
+            elif settings.TELEGRAM_CHAT_ID:
+                self.register_provider(
+                    TelegramProvider(
+                        chat_id=settings.TELEGRAM_CHAT_ID,
+                        thread_id=settings.TELEGRAM_THREAD_ID,
+                    )
+                )
+                logger.info("Telegram provider registered (legacy single channel)")
+            else:
+                logger.warning(
+                    "TELEGRAM_BOT_TOKEN is set but no TELEGRAM_CHANNELS/TELEGRAM_CHAT_ID configured"
+                )
+
+    def _parse_telegram_channels(self, channels: str | None) -> list[tuple[int, int | None]]:
+        """
+        Parse TELEGRAM_CHANNELS values formatted as:
+        "<chat_id>" or "<chat_id>:<thread_id>" entries separated by commas.
+        """
+        if not channels:
+            return []
+
+        parsed_channels: list[tuple[int, int | None]] = []
+        for raw_entry in channels.split(","):
+            entry = raw_entry.strip()
+            if not entry:
+                continue
+
+            chat_id_part, _, thread_id_part = entry.partition(":")
+            try:
+                chat_id = int(chat_id_part.strip())
+                thread_id = int(thread_id_part.strip()) if thread_id_part.strip() else None
+            except ValueError:
+                logger.warning(
+                    "Invalid TELEGRAM_CHANNELS entry '%s'; expected chat_id[:thread_id]",
+                    entry,
+                )
+                continue
+
+            parsed_channels.append((chat_id, thread_id))
+
+        return parsed_channels
 
     def register_provider(self, provider: NotificationProvider):
         """
