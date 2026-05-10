@@ -114,7 +114,6 @@ class NotificationManagerTest(unittest.TestCase):
             [(p.chat_id, p.thread_id) for p in manager.providers],
             [(-1001, 12), (-1002, None), (-1003, None)],
         )
-        self.assertIn((-1003, None), [(p.chat_id, p.thread_id) for p in manager.providers])
         self.assertTrue(
             any(
                 "Invalid TELEGRAM_CHANNELS entry 'invalid'" in message
