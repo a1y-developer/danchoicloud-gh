@@ -26,10 +26,11 @@ class Settings(BaseSettings):
 
     # Telegram
     TELEGRAM_BOT_TOKEN: str
-    TELEGRAM_CHAT_ID: int  # ID of the group chat to send notifications to
+    TELEGRAM_CHAT_ID: Optional[int] = None  # Legacy single-channel chat ID
     TELEGRAM_THREAD_ID: Optional[int] = (
-        None  # ID of the topic (thread) within the group
+        None  # Legacy single-channel thread ID
     )
+    TELEGRAM_CHANNELS: str | None = None  # e.g. "-1001:12,-1002"
 
     # Logging
     LOG_LEVEL: str = "INFO"
