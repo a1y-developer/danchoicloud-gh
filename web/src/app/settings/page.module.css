@@ -1,0 +1,143 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 40px 24px 80px;
+  max-width: 960px;
+  margin: 0 auto;
+  font-family: var(--font-geist-sans);
+}
+
+.header h1 {
+  font-size: 32px;
+  margin: 8px 0;
+}
+
+.backLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.formRow label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.formRow input,
+.formRow select,
+.formRow textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  min-width: 220px;
+  font-size: 14px;
+}
+
+.formRow textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.fullWidth {
+  flex: 1;
+  min-width: 280px;
+}
+
+.primary,
+.secondary,
+.danger {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.primary {
+  background: #111827;
+  color: #ffffff;
+}
+
+.secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+.notice {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.status {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.channelItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.channelTitle {
+  font-weight: 600;
+}
+
+.channelActions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 32px 16px 64px;
+  }
+
+  .channelItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

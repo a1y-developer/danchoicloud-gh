@@ -13,6 +13,7 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "telegramify-markdown>=0.5.2",
+    "sqlalchemy>=2.0.49",
 ]
 
 [dependency-groups]

@@ -15,20 +15,41 @@ class TelegramProvider(NotificationProvider):
     Handles conversion from standard Markdown to Telegram MarkdownV2.
     """
 
-    def __init__(self):
-        self.chat_id = settings.TELEGRAM_CHAT_ID
-        self.thread_id = settings.TELEGRAM_THREAD_ID
+    def __init__(
+        self,
+        bot_token: str | None = None,
+        chat_id: int | str | None = None,
+        thread_id: int | str | None = None,
+    ):
+        self.chat_id = self._parse_int(chat_id)
+        if self.chat_id is None:
+            self.chat_id = settings.TELEGRAM_CHAT_ID
+
+        self.thread_id = self._parse_int(thread_id)
+        if self.thread_id is None:
+            self.thread_id = settings.TELEGRAM_THREAD_ID
+
+        resolved_token = bot_token or settings.TELEGRAM_BOT_TOKEN
         self.bot = None
 
-        if settings.TELEGRAM_BOT_TOKEN:
+        if resolved_token:
             self.bot = Bot(
-                token=settings.TELEGRAM_BOT_TOKEN,
+                token=resolved_token,
                 default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
             )
         else:
             logger.warning(
                 "TELEGRAM_BOT_TOKEN not set, Telegram notifications disabled."
             )
+
+    @staticmethod
+    def _parse_int(value: int | str | None) -> int | None:
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
 
     def _convert_to_telegram_md(self, text: str) -> str:
         """

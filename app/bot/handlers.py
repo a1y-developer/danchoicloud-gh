@@ -16,13 +16,16 @@ async def handle_pr_opened_notification(payload: dict):
 
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     markdown_text = (
         f"**[{repo_full_name}]({repo_url})** : ✨ New PR Opened: "
         f"[{pr.get('title')}]({pr.get('html_url')}) by @{sender.get('login')}"
     )
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_pr_opened_label_ai(payload: dict):
@@ -131,13 +134,16 @@ async def handle_pr_review_requested(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     markdown_text = (
         f"**[{repo_full_name}]({repo_url})** : 🔍 Review Requested for "
         f"@{requested_reviewer.get('login')} : [{pr.get('title')}]({pr.get('html_url')})"
     )
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_pr_assigned(payload: dict):
@@ -146,13 +152,16 @@ async def handle_pr_assigned(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     markdown_text = (
         f"**[{repo_full_name}]({repo_url})** : 👤 @{assignee.get('login')} "
         f"assigned to PR: [{pr.get('title')}]({pr.get('html_url')})"
     )
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_issue_opened(payload: dict):
@@ -161,13 +170,16 @@ async def handle_issue_opened(payload: dict):
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
     sender = payload.get("sender", {})
+    owner_name = repo.get("owner", {}).get("login")
 
     markdown_text = (
         f"**[{repo_full_name}]({repo_url})** : 🚨 New Issue: "
         f"[{issue.get('title')}]({issue.get('html_url')}) by @{sender.get('login')}"
     )
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_issue_opened_ai(payload: dict):
@@ -215,13 +227,16 @@ async def handle_issue_assigned(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     markdown_text = (
         f"**[{repo_full_name}]({repo_url})** : 🔨 @{assignee.get('login')} "
         f"assigned to Issue: [{issue.get('title')}]({issue.get('html_url')})"
     )
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_issue_comment_created(payload: dict):
@@ -231,6 +246,7 @@ async def handle_issue_comment_created(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     # Check if it is a PR or Issue
     is_pr = "pull_request" in issue
@@ -250,7 +266,9 @@ async def handle_issue_comment_created(payload: dict):
     if assignee_mentions:
         markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_issue_comment_cla(payload: dict):
@@ -276,6 +294,7 @@ async def handle_pr_closed(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     if merged:
         action_text = "Merged"
@@ -300,7 +319,9 @@ async def handle_pr_closed(payload: dict):
     if assignee_mentions:
         markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_issue_closed(payload: dict):
@@ -309,6 +330,7 @@ async def handle_issue_closed(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     assignees = issue.get("assignees", [])
     assignee_mentions = [
@@ -323,7 +345,9 @@ async def handle_issue_closed(payload: dict):
     if assignee_mentions:
         markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_pr_closed_cla(payload: dict):
@@ -347,6 +371,7 @@ async def handle_pr_review_submitted(payload: dict):
     repo = payload.get("repository", {})
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     state = review.get("state")
 
@@ -382,7 +407,9 @@ async def handle_pr_review_submitted(payload: dict):
     if assignee_mentions:
         markdown_text += f"\n\ncc: {', '.join(assignee_mentions)}"
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
 
 
 async def handle_workflow_run(payload: dict):
@@ -458,7 +485,9 @@ async def handle_workflow_run(payload: dict):
             if actor_login != "Unknown":
                 markdown_text += f"cc: @{actor_login} please check this job!\n"
 
-        await notification_manager.broadcast_message(markdown_text)
+        await notification_manager.broadcast_message(
+            markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+        )
     except Exception as e:
         logger.error(f"Error handling workflow run: {e}", exc_info=True)
 
@@ -473,6 +502,7 @@ async def handle_release_published(payload: dict):
 
     repo_full_name = repo.get("full_name")
     repo_url = repo.get("html_url")
+    owner_name = repo.get("owner", {}).get("login")
 
     release_name = release.get("name") or release.get("tag_name")
     release_url = release.get("html_url")
@@ -489,4 +519,6 @@ async def handle_release_published(payload: dict):
     if sender.get("login"):
         markdown_text += f" by @{sender.get('login')}"
 
-    await notification_manager.broadcast_message(markdown_text)
+    await notification_manager.broadcast_message(
+        markdown_text, org_name=owner_name, repo_full_name=repo_full_name
+    )
