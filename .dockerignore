@@ -16,3 +16,9 @@ wheels/
 .env
 .env.*
 docker-compose.yml
+node_modules/
+.next/
+web/node_modules/
+web/.next/
+data/
+*.db

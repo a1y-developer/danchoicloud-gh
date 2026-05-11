@@ -1,6 +1,8 @@
 import json
 import logging
+
 from app.bot import handlers
+from app.services.integration_scope import is_payload_allowed
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,10 @@ async def handle_event(event_name: str, payload_bytes: bytes):
 
     if event_name == "ping":
         logger.info("Ping event received")
+        return
+
+    if not await is_payload_allowed(payload):
+        logger.info("Event ignored due to integration scope restrictions")
         return
 
     if event_name == "pull_request":

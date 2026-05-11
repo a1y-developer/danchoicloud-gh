@@ -9,6 +9,15 @@ class Settings(BaseSettings):
     GITHUB_APP_ID: str
     GITHUB_PRIVATE_KEY: str
     GITHUB_WEBHOOK_SECRET: str
+    GITHUB_APP_SLUG: str | None = None
+    GITHUB_OAUTH_CLIENT_ID: str | None = None
+    GITHUB_OAUTH_CLIENT_SECRET: str | None = None
+    GITHUB_OAUTH_SCOPES: str = "read:user"
+    GITHUB_OAUTH_REDIRECT_URI: str | None = None
+    WEB_BASE_URL: str = "http://localhost:3000"
+    SESSION_COOKIE_NAME: str = "danchoicloud_session"
+    SESSION_EXPIRES_DAYS: int = 7
+    COOKIE_SECURE: bool = False
 
     # CLA Assistant
     CLA_ENABLED: bool = True
@@ -25,11 +34,22 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
 
     # Telegram
-    TELEGRAM_BOT_TOKEN: str
-    TELEGRAM_CHAT_ID: int  # ID of the group chat to send notifications to
+    TELEGRAM_BOT_TOKEN: str | None = None
+    TELEGRAM_CHAT_ID: int | None = None  # ID of the group chat to send notifications to
     TELEGRAM_THREAD_ID: Optional[int] = (
         None  # ID of the topic (thread) within the group
     )
+
+    # Database
+    DATABASE_URL: str | None = None
+    LOCAL_DB_PATH: str = "./data/app.db"
+
+    # Integration scope (optional hard limit)
+    INTEGRATION_SCOPE_TYPE: str | None = None
+    INTEGRATION_SCOPE_NAME: str | None = None
+
+    # CORS
+    EXTRA_CORS_ORIGINS: str = ""
 
     # Logging
     LOG_LEVEL: str = "INFO"

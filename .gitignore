@@ -10,5 +10,10 @@ wheels/
 .venv
 
 .env
+node_modules/
+.next/
+web/.env.local
+data/
+*.db
 
 test_markdown.py
