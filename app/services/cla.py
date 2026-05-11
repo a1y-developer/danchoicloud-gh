@@ -236,13 +236,15 @@ class CLAService:
             return False
         return True
 
-    def _get_allowlist(self) -> Set[str]:
-        raw = settings.CLA_ALLOWLIST or ""
+    def _parse_allowlist(self, raw: Optional[str]) -> Set[str]:
+        raw = raw or ""
         return {item.strip() for item in raw.split(",") if item.strip()}
 
+    def _get_allowlist(self) -> Set[str]:
+        return self._parse_allowlist(settings.CLA_ALLOWLIST)
+
     def _get_ai_agent_allowlist(self) -> Set[str]:
-        raw = settings.CLA_AI_AGENT_ALLOWLIST or ""
-        return {item.strip() for item in raw.split(",") if item.strip()}
+        return self._parse_allowlist(settings.CLA_AI_AGENT_ALLOWLIST)
 
     async def _get_pr_contributors(
         self,
