@@ -47,6 +47,7 @@ def _install_telegram_stubs():
     telegramify.markdownify = lambda text, normalize_whitespace=False: text
 
     aiogram = types.ModuleType("aiogram")
+    aiogram.__path__ = []  # make it package-like for dotted imports
 
     class Bot:
         def __init__(self, token, default):
@@ -56,6 +57,8 @@ def _install_telegram_stubs():
 
     aiogram.Bot = Bot
 
+    aiogram_client = types.ModuleType("aiogram.client")
+    aiogram_client.__path__ = []  # make it package-like for dotted imports
     aiogram_client_default = types.ModuleType("aiogram.client.default")
 
     class DefaultBotProperties:
@@ -70,11 +73,15 @@ def _install_telegram_stubs():
         MARKDOWN_V2 = "MarkdownV2"
 
     aiogram_enums.ParseMode = ParseMode
+    aiogram.client = aiogram_client
+    aiogram.enums = aiogram_enums
+    aiogram_client.default = aiogram_client_default
 
     return {
         "pydantic_settings": pydantic_settings,
         "telegramify_markdown": telegramify,
         "aiogram": aiogram,
+        "aiogram.client": aiogram_client,
         "aiogram.client.default": aiogram_client_default,
         "aiogram.enums": aiogram_enums,
     }
