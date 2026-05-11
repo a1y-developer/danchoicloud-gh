@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     CLA_SIGNATURES_PATH: str = "signatures/version1/cla.json"
     CLA_SIGNATURES_BRANCH: str = "main"
     CLA_ALLOWLIST: str = "bot"  # comma-separated usernames/bots
+    CLA_AI_AGENT_ALLOWLIST: str = ""  # comma-separated AI agent usernames
     CLA_SIGN_PHRASE: str = "I have read the CLA Document and I hereby sign the CLA"
     CLA_RECHECK_PHRASE: str = "recheck"
     CLA_LOCK_AFTER_MERGE: bool = True

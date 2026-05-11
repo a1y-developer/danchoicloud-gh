@@ -240,6 +240,10 @@ class CLAService:
         raw = settings.CLA_ALLOWLIST or ""
         return {item.strip() for item in raw.split(",") if item.strip()}
 
+    def _get_ai_agent_allowlist(self) -> Set[str]:
+        raw = settings.CLA_AI_AGENT_ALLOWLIST or ""
+        return {item.strip() for item in raw.split(",") if item.strip()}
+
     async def _get_pr_contributors(
         self,
         client: Github,
@@ -247,7 +251,7 @@ class CLAService:
         repo: str,
         pr_number: int,
     ) -> Set[str]:
-        allowlist = self._get_allowlist()
+        allowlist = self._get_allowlist() | self._get_ai_agent_allowlist()
         commits = await github_service.get_pr_commits(client, owner, repo, pr_number)
 
         contributors: Set[str] = set()
